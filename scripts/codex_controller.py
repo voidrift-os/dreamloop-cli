@@ -8,9 +8,12 @@ openai.api_key = os.getenv("OPENAI_API_KEY", "sk-REPLACE_WITH_YOUR_KEY")
 def run_codex_command(prompt: str) -> None:
     """Send the prompt to the model and execute the returned command."""
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
+        api_version = getattr(openai, "__version__", "0")
+        major_version = int(api_version.split(".")[0]) if api_version[0].isdigit() else 0
+
+        chat_args = {
+            "model": "gpt-4",
+            "messages": [
                 {
                     "role": "system",
                     "content": (
@@ -20,7 +23,12 @@ def run_codex_command(prompt: str) -> None:
                 },
                 {"role": "user", "content": prompt},
             ],
-        )
+        }
+
+        if major_version >= 1:
+            response = openai.ChatCompletion.create(**chat_args)
+        else:
+            response = openai.chat.completions.create(**chat_args)
 
         command = response["choices"][0]["message"]["content"].strip()
         print(f"💡 Codex says: {command}")
