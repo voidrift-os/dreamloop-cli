@@ -8,7 +8,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY", "sk-REPLACE_WITH_YOUR_KEY")
 def run_codex_command(prompt: str) -> None:
     """Send the prompt to the model and execute the returned command."""
     try:
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {
@@ -22,7 +22,7 @@ def run_codex_command(prompt: str) -> None:
             ],
         )
 
-        command = response.choices[0].message.content.strip()
+        command = response["choices"][0]["message"]["content"].strip()
         print(f"💡 Codex says: {command}")
         os.system(command)
     except Exception as e:
