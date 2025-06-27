@@ -19,3 +19,16 @@ This CLI tool helps you generate AI-driven cinematic shorts based on Dreamloop-s
 3. Use image generation tools to create scene PNGs
 4. Use `ffmpeg` to combine image + audio per scene
 5. Concatenate all scenes into a final short
+
+## Using ComfyUI for Motion
+If you want to generate motion via AnimateDiff, install **ComfyUI** and the **AnimateDiff** extension first. Missing these will cause errors like `node types were not found` when loading the workflow.
+
+1. Clone [ComfyUI](https://github.com/comfyanonymous/ComfyUI) and install its dependencies.
+2. In ComfyUI's `custom_nodes/` folder, clone or copy the AnimateDiff extension. For example:
+   ```bash
+   cd path/to/ComfyUI/custom_nodes
+   git clone https://github.com/your-animdiff-repo/AnimateDiff.git
+   ```
+3. Restart ComfyUI so it loads the new nodes.
+4. Reload your workflow. The nodes (`Load Checkpoint`, `AnimateDiffLoader`, etc.) should be recognized, and the zod validation errors will disappear.
+
