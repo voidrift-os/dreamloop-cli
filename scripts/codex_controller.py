@@ -1,39 +1,32 @@
 import os
-import openai
+from openai import OpenAI
 
-# Set your OpenAI API key or define the OPENAI_API_KEY environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY", "sk-REPLACE_WITH_YOUR_KEY")
+# ✅ Load API Key from environment
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+print("\U0001F9E0 Dreamloop Codex Terminal Online (v1.x API)")
+print("Type your command. Type 'exit' to stop.")
 
-def run_codex_command(prompt: str) -> None:
-    """Send the prompt to the model and execute the returned command."""
+while True:
+    prompt = input("\U0001F300 > ")
+    if prompt.lower() in ["exit", "quit"]:
+        print("Exiting Dreamloop Codex...")
+        break
+
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {
                     "role": "system",
-                    "content": (
-                        "You are a CLI automation assistant that controls Dreamloop CLI. "
-                        "Only return shell commands that operate in the project folder."
-                    ),
+                    "content": "You are Codex, an advanced dreamcore simulation scriptwriter.",
                 },
                 {"role": "user", "content": prompt},
             ],
         )
-
-        command = response["choices"][0]["message"]["content"].strip()
-        print(f"💡 Codex says: {command}")
-        os.system(command)
+        output = response.choices[0].message.content.strip()
+        print("\n\u2728 Result:\n")
+        print(output)
+        print("\n" + ("-" * 40) + "\n")
     except Exception as e:
-        print(f"⚠️ Error: {e}")
-
-
-if __name__ == "__main__":
-    print("🧠 Dreamloop Codex Terminal Online (v1.x API)")
-    print("Type your command. Type 'exit' to stop.")
-    while True:
-        user_input = input("🌀 > ")
-        if user_input.lower() in ["exit", "quit"]:
-            break
-        run_codex_command(user_input)
+        print(f"\u26A0\uFE0F Error: {e}\n")
