@@ -15,7 +15,7 @@ This CLI tool helps you generate AI-driven cinematic shorts based on Dreamloop-s
 
 ## Basic Workflow
 1. Write your 5-scene script in `scenes/`
-2. Use `scripts/gen_voice.py` to generate voiceovers (ElevenLabs API)
+2. Run `scripts/voice_server.py` to start a local API for voice generation (ElevenLabs)
 3. Use image generation tools to create scene PNGs
 4. Use `ffmpeg` to combine image + audio per scene
 5. Concatenate all scenes into a final short

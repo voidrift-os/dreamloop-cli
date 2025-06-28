@@ -1,7 +1,7 @@
 # codex_dreamloop_workflow.py
 import os
 import json
-import subprocess
+import datetime
 from pathlib import Path
 
 # === ENVIRONMENT SETUP ===
@@ -15,7 +15,7 @@ MEMORY_FILE = "dreamloop_memory.md"
 # === OUTPUT FILES ===
 VOICE_PAYLOAD_FILE = "voice_payload.json"
 SCENE_PROMPTS_FILE = "scene_prompts.json"
-VIDEO_WORKFLOW_FILE = "video_workflow.json"
+VIDEO_WORKFLOW_FILE = "video_workflow.yaml"
 
 # === PARSE MEMORY ===
 def parse_memory_file(path):
@@ -64,11 +64,6 @@ def generate_video_workflow(title, scenes):
         }
     }
 
-# === GITHUB PUSH ===
-def push_to_github(commit_msg="Auto-update Dreamloop workflow"):
-    subprocess.run(["git", "add", VOICE_PAYLOAD_FILE, SCENE_PROMPTS_FILE, VIDEO_WORKFLOW_FILE], check=True)
-    subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-    subprocess.run(["git", "push"], check=True)
 
 # === MAIN EXECUTION ===
 def run():
@@ -94,4 +89,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-    push_to_github("🌀 Auto-generated Dreamloop video workflow")
