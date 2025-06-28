@@ -1,0 +1,6 @@
+title: "Dreamloop Memory: You Were Never Awake"
+scene_count: 2
+duration_sec: 10
+assets:
+  voiceover: "voice_payload.json"
+  scenes: "scene_prompts.json"

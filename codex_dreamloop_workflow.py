@@ -1,4 +1,5 @@
-# codex_dreamloop_workflow.py
+
+    push_to_github("🌀# codex_dreamloop_workflow.py
 import os
 import json
 import subprocess
@@ -19,7 +20,7 @@ SCENE_PROMPTS_FILE = "scene_prompts.json"
 VIDEO_WORKFLOW_FILE = "video_workflow.yaml"
 
 # === PARSE MEMORY ===
-def parse_memory_file(path):
+def parse_memory_file(path: str) -> (str, List[Dict[str, str]]):
     with open(path, 'r') as f:
         content = f.read()
 
@@ -36,14 +37,16 @@ def parse_memory_file(path):
     return title, parsed_scenes
 
 # === GENERATE PAYLOADS ===
-def generate_voice_payload(text):
+def generate_voice_payload(text: str, voice_id: str) -> Dict:
+    """Create the ElevenLabs voice payload using the given voice ID."""
     return {
         "text": text,
+        "voice_id": voice_id,
         "model_id": "eleven_multilingual_v2",
         "voice_settings": {
             "stability": 0.4,
-            "similarity_boost": 0.85
-        }
+            "similarity_boost": 0.85,
+        },
     }
 
 def generate_scene_prompts(scenes):
@@ -79,20 +82,6 @@ def generate_scene_prompts_from_lines(script_lines: List[str]) -> List[Dict[str,
             }
         )
     return prompts
-
-
-def generate_voice_payload_with_id(script_text: str, voice_id: str) -> Dict:
-    """Build a voice payload using the provided voice ID."""
-    return {
-        "voice_id": voice_id,
-        "text": script_text,
-        "voice_config": {
-            "stability": 0.3,
-            "similarity_boost": 0.85,
-            "style": 0.4,
-            "use_speaker_boost": True,
-        },
-    }
 
 
 def generate_video_prompt_payload(scene_prompts: List[Dict[str, str]]) -> List[Dict[str, str]]:
@@ -159,7 +148,7 @@ def run():
 
     # Write voice payload
     with open(VOICE_PAYLOAD_FILE, 'w') as f:
-        json.dump(generate_voice_payload(full_script), f, indent=2)
+        json.dump(generate_voice_payload(full_script, ELEVENLABS_VOICE_ID), f, indent=2)
 
     # Write scene prompts
     with open(SCENE_PROMPTS_FILE, 'w') as f:
@@ -171,5 +160,4 @@ def run():
     print(f"[+] Workflow created for: {title}")
 
 if __name__ == "__main__":
-    run()
-    push_to_github("🌀 Auto-generated Dreamloop video workflow")
+    run() Auto-generated Dreamloop video workflow")
