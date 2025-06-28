@@ -5,12 +5,13 @@ from codex_dreamloop_workflow import (
     generate_voice_payload,
     generate_scene_prompts,
     generate_video_workflow,
+    write_yaml,
     MEMORY_FILE,
 )
 
 VOICE_PAYLOAD_FILE = "voice_payload.json"
 SCENE_PROMPTS_FILE = "scene_prompts.json"
-VIDEO_WORKFLOW_FILE = "video_workflow.json"
+VIDEO_WORKFLOW_FILE = "video_workflow.yaml"
 
 
 def run():
@@ -28,8 +29,7 @@ def run():
     with open(SCENE_PROMPTS_FILE, "w") as fh:
         json.dump(generate_scene_prompts(scenes), fh, indent=2)
 
-    with open(VIDEO_WORKFLOW_FILE, "w") as fh:
-        json.dump(generate_video_workflow(title, scenes), fh, indent=2)
+    write_yaml(generate_video_workflow(title, scenes), VIDEO_WORKFLOW_FILE)
 
     print(
         f"[+] Generated {VOICE_PAYLOAD_FILE}, {SCENE_PROMPTS_FILE}, {VIDEO_WORKFLOW_FILE}"

@@ -1,7 +1,17 @@
+
+    push_to_github("🌀# codex_dreamloop_workflow.py
 import os
 import json
 import subprocess
+from pathlib import Path
+from typing import List, Dict
 
+# === ENVIRONMENT SETUP ===
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
+
+# === INPUT MEMORY ===
 MEMORY_FILE = "dreamloop_memory.md"
 
 # === OUTPUT FILES ===
@@ -10,64 +20,90 @@ SCENE_PROMPTS_FILE = "scene_prompts.json"
 VIDEO_WORKFLOW_FILE = "video_workflow.yaml"
 
 # === PARSE MEMORY ===
-def parse_memory_file(path):
-    with open(path, "r") as f:
-        lines = f.readlines()
+def parse_memory_file(path: str) -> (str, List[Dict[str, str]]):
+    with open(path, 'r') as f:
+        content = f.read()
 
-    title = lines[0].strip()
-    scenes = []
-    current_scene = {"image_prompt": "", "motion_prompt": ""}
-    mode = None
+    title = content.splitlines()[0].replace("# ", "").strip()
+    scenes = content.split("---")
+    parsed_scenes = []
+    for scene in scenes:
+        if "Scene" in scene:
+            lines = scene.strip().splitlines()
+            prompt = next((l for l in lines if "Prompt:" in l), "").replace("Prompt:", "").strip()
+            motion = next((l for l in lines if "Motion:" in l), "").replace("Motion:", "").strip()
+            parsed_scenes.append({"prompt": prompt, "motion": motion})
 
-    for line in lines[1:]:
-        line = line.strip()
-        if line.startswith("Image Prompt:"):
-            if current_scene["image_prompt"]:
-                scenes.append(current_scene)
-                current_scene = {"image_prompt": "", "motion_prompt": ""}
-            mode = "image"
-            current_scene["image_prompt"] = line.replace("Image Prompt:", "").strip()
-        elif line.startswith("Motion Prompt:"):
-            mode = "motion"
-            current_scene["motion_prompt"] = line.replace("Motion Prompt:", "").strip()
-        elif line:
-            if mode == "image":
-                current_scene["image_prompt"] += " " + line
-            elif mode == "motion":
-                current_scene["motion_prompt"] += " " + line
+    return title, parsed_scenes
 
-    if current_scene["image_prompt"]:
-        scenes.append(current_scene)
-
-    return title, scenes
-
-# === GENERATE VOICE PAYLOAD ===
-def generate_voice_payload(text):
+# === GENERATE PAYLOADS ===
+def generate_voice_payload(text: str, voice_id: str) -> Dict:
+    """Create the ElevenLabs voice payload using the given voice ID."""
     return {
-        "voice_id": "j9jfwdrw7BRfcR43Qohk",
-        "model_id": "eleven_multilingual_v2",
         "text": text,
-        "voice_settings": {"stability": 0.4, "similarity_boost": 0.8}
+        "voice_id": voice_id,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+            "stability": 0.4,
+            "similarity_boost": 0.85,
+        },
     }
 
-# === GENERATE VIDEO WORKFLOW ===
+def generate_scene_prompts(scenes):
+    return [
+        {
+            "image_prompt": s["prompt"],
+            "motion_prompt": s["motion"]
+        } for s in scenes
+    ]
+
 def generate_video_workflow(title, scenes):
     return {
-        "workflow": {
-            "title": title,
-            "type": "dreamloop-video",
-            "scenes": scenes
+        "title": title,
+        "scene_count": len(scenes),
+        "duration_sec": len(scenes) * 5,
+        "assets": {
+            "voiceover": VOICE_PAYLOAD_FILE,
+            "scenes": SCENE_PROMPTS_FILE
         }
     }
 
-# === WRITE JSON ===
-def write_json(data, path: str) -> None:
-    with open(path, "w") as f:
+
+# === GENERATE PAYLOADS FROM RAW SCRIPT ===
+def generate_scene_prompts_from_lines(script_lines: List[str]) -> List[Dict[str, str]]:
+    """Create default scene prompts from plain text lines."""
+    prompts = []
+    for i, line in enumerate(script_lines):
+        prompts.append(
+            {
+                "scene": f"Scene {i+1}",
+                "image_prompt": f"A surreal cinematic representation of: {line}",
+                "motion_prompt": f"Slow cinematic movement matching: {line}",
+            }
+        )
+    return prompts
+
+
+def generate_video_prompt_payload(scene_prompts: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    """Convert scene prompts to video generation payloads."""
+    return [
+        {
+            "input_image": f"scene_{i+1}.png",
+            "motion_prompt": scene["motion_prompt"],
+        }
+        for i, scene in enumerate(scene_prompts)
+    ]
+
+
+def save_json_file(data: Dict, filename: str) -> None:
+    """Write data to a JSON file with indentation."""
+    with open(filename, "w") as f:
         json.dump(data, f, indent=2)
 
-# === WRITE YAML ===
+
 def write_yaml(data, path: str) -> None:
-    def _to_yaml(obj, indent=0):
+    """Write a minimal YAML representation to the given path."""
+    def _to_yaml(obj, indent: int = 0) -> list[str]:
         space = " " * indent
         if isinstance(obj, dict):
             lines = []
@@ -89,26 +125,39 @@ def write_yaml(data, path: str) -> None:
                     val = json.dumps(item) if isinstance(item, str) else item
                     lines.append(f"{space}- {val}")
             return lines
-        return [f"{space}{obj}"]
+        else:
+            return [f"{space}{obj}"]
 
-    with open(path, "w") as f:
-        f.write("\n".join(_to_yaml(data)))
+    with open(path, "w") as fh:
+        fh.write("\n".join(_to_yaml(data)))
 
-# === GIT PUSH ===
-def push_to_github(message="Auto commit"):
-    subprocess.run(["git", "add", "."], check=True)
-    subprocess.run(["git", "commit", "-m", message], check=True)
+
+def push_to_github(commit_msg="Auto-update Dreamloop workflow"):
+    subprocess.run(["git", "add", VOICE_PAYLOAD_FILE, SCENE_PROMPTS_FILE, VIDEO_WORKFLOW_FILE], check=True)
+    subprocess.run(["git", "commit", "-m", commit_msg], check=True)
     subprocess.run(["git", "push"], check=True)
 
-# === FULL WORKFLOW ===
+
+# === MAIN EXECUTION ===
 def run():
+    if not Path(MEMORY_FILE).exists():
+        raise FileNotFoundError("Missing dreamloop_memory.md file")
+
     title, scenes = parse_memory_file(MEMORY_FILE)
-    print(f"[✓] Workflow created for: Dreamloop Memory: {title}")
-    voice_payload = generate_voice_payload(title)
-    workflow = generate_video_workflow(title, scenes)
+    full_script = "\n".join([s["prompt"] for s in scenes])
 
-    write_json(voice_payload, VOICE_PAYLOAD_FILE)
-    write_json(scenes, SCENE_PROMPTS_FILE)
-    write_yaml(workflow, VIDEO_WORKFLOW_FILE)
+    # Write voice payload
+    with open(VOICE_PAYLOAD_FILE, 'w') as f:
+        json.dump(generate_voice_payload(full_script, ELEVENLABS_VOICE_ID), f, indent=2)
 
-    push_to_github("🌀 Auto-generated Dreamloop video workflow")
+    # Write scene prompts
+    with open(SCENE_PROMPTS_FILE, 'w') as f:
+        json.dump(generate_scene_prompts(scenes), f, indent=2)
+
+    # Write workflow file
+    write_yaml(generate_video_workflow(title, scenes), VIDEO_WORKFLOW_FILE)
+
+    print(f"[+] Workflow created for: {title}")
+
+if __name__ == "__main__":
+    run() Auto-generated Dreamloop video workflow")

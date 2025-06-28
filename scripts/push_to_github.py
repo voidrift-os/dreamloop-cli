@@ -3,7 +3,7 @@ import subprocess
 FILES = [
     "voice_payload.json",
     "scene_prompts.json",
-    "video_workflow.json",
+    "video_workflow.yaml",
     "voice/dreamloop_voice.mp3",
     "video",
     "final_video.mp4",
