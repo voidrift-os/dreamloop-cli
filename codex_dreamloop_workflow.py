@@ -1,6 +1,14 @@
 # codex_dreamloop_workflow.py
+import os
 import json
+import subprocess
+
 from pathlib import Path
+
+# === ENVIRONMENT SETUP ===
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID")
 
 # === INPUT MEMORY ===
 MEMORY_FILE = "dreamloop_memory.md"
@@ -8,7 +16,7 @@ MEMORY_FILE = "dreamloop_memory.md"
 # === OUTPUT FILES ===
 VOICE_PAYLOAD_FILE = "voice_payload.json"
 SCENE_PROMPTS_FILE = "scene_prompts.json"
-VIDEO_WORKFLOW_FILE = "video_workflow.json"
+VIDEO_WORKFLOW_FILE = "video_workflow.yaml"
 
 # === PARSE MEMORY ===
 def parse_memory_file(path):
@@ -58,6 +66,12 @@ def generate_video_workflow(title, scenes):
     }
 
 
+def push_to_github(commit_msg="Auto-update Dreamloop workflow"):
+    subprocess.run(["git", "add", VOICE_PAYLOAD_FILE, SCENE_PROMPTS_FILE, VIDEO_WORKFLOW_FILE])
+    subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+    subprocess.run(["git", "push"], check=True)
+
+
 # === MAIN EXECUTION ===
 def run():
     if not Path(MEMORY_FILE).exists():
@@ -82,3 +96,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+    push_to_github("Auto-generated Dreamloop video workflow")
