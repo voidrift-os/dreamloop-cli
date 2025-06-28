@@ -1,35 +1,50 @@
+from codex_dreamloop_workflow import (
+    parse_memory_file,
+    generate_voice_payload,
+    write_json,
+    write_yaml,
+    push_to_github,
+    VIDEO_WORKFLOW_FILE,
+    VOICE_PAYLOAD_FILE,
+    SCENE_PROMPTS_FILE,
+)
+
 from scripts import (
-    parse_script_and_generate_jsons,
     gen_voice_clip,
     generate_scenes,
     assemble_video,
-    push_to_github,
 )
-
 
 def run_full():
     """Run the entire Dreamloop pipeline."""
     try:
-        print("[1] Parsing memory and generating JSON payloads...")
-        parse_script_and_generate_jsons.run()
+        print("[1] Parsing memory and generating JSON/YAML payloads...")
+        title, scenes = parse_memory_file("dreamloop_memory.md")
 
-        print("[2] Generating voiceover clip...")
+        write_json(scenes, SCENE_PROMPTS_FILE)
+        write_json(generate_voice_payload(title), VOICE_PAYLOAD_FILE)
+        write_yaml({
+            "workflow": {
+                "title": title,
+                "type": "dreamloop-video",
+                "scenes": scenes
+            }
+        }, VIDEO_WORKFLOW_FILE)
+
+        print("[2] Generating voiceover...")
         gen_voice_clip.run()
 
-        print("[3] Generating scene videos via ComfyUI...")
+        print("[3] Generating scenes...")
         generate_scenes.run()
 
-        print("[4] Assembling final video with ffmpeg...")
+        print("[4] Assembling final video...")
         assemble_video.run()
 
-        print("[5] Pushing results to GitHub...")
-        push_to_github.run()
+        print("[5] Pushing to GitHub...")
+        push_to_github("🚀 Dreamloop pipeline executed")
 
-        print("[✓] Dreamloop pipeline complete. Output saved to final_video.mp4")
-    except Exception as exc:
-        print(f"[error] Pipeline failed: {exc}")
-        raise
-
+    except Exception as e:
+        print("❌ Pipeline failed:", e)
 
 if __name__ == "__main__":
     run_full()
