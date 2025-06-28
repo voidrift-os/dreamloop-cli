@@ -2,8 +2,6 @@
 import os
 import json
 import subprocess
-from typing import Any
-
 from pathlib import Path
 
 # === ENVIRONMENT SETUP ===
@@ -67,9 +65,9 @@ def generate_video_workflow(title, scenes):
     }
 
 
-def write_yaml(data: Any, path: str) -> None:
+def write_yaml(data, path: str) -> None:
     """Write a minimal YAML representation to the given path."""
-    def _to_yaml(obj: Any, indent: int = 0) -> list[str]:
+    def _to_yaml(obj, indent: int = 0) -> list[str]:
         space = " " * indent
         if isinstance(obj, dict):
             lines = []
