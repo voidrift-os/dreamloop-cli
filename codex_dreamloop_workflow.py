@@ -125,4 +125,4 @@ def run():
 
 if __name__ == "__main__":
     run()
-    push_to_github("🌀 Auto-generated Dreamloop video workflow")
+push_to_github("🌀 Auto-generated Dreamloop video workflow")
