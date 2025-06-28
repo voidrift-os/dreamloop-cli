@@ -97,7 +97,7 @@ def write_yaml(data, path: str) -> None:
 
 
 def push_to_github(commit_msg="Auto-update Dreamloop workflow"):
-    subprocess.run(["git", "add", VOICE_PAYLOAD_FILE, SCENE_PROMPTS_FILE, VIDEO_WORKFLOW_FILE])
+    subprocess.run(["git", "add", VOICE_PAYLOAD_FILE, SCENE_PROMPTS_FILE, VIDEO_WORKFLOW_FILE], check=True)
     subprocess.run(["git", "commit", "-m", commit_msg], check=True)
     subprocess.run(["git", "push"], check=True)
 
@@ -125,4 +125,4 @@ def run():
 
 if __name__ == "__main__":
     run()
-    push_to_github("Auto-generated Dreamloop video workflow")
+    push_to_github("🌀 Auto-generated Dreamloop video workflow")
