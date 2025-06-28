@@ -1,27 +1,35 @@
-from scripts.parse_memory import parse_script
-from scripts.voice_server import create_voice_clip
-from scripts.gen_image_prompts import generate_image_prompts
-from scripts.run_motion import run_motion
-from scripts.assemble_video import assemble_video
+from scripts import (
+    parse_script_and_generate_jsons,
+    gen_voice_clip,
+    generate_scenes,
+    assemble_video,
+    push_to_github,
+)
 
-def main():
-    print("[\u2713] Parsing script from memory...")
-    scenes = parse_script()
 
-    print("[\u2713] Generating voice with ElevenLabs...")
-    for scene in scenes:
-        create_voice_clip(scene["text"])
+def run_full():
+    """Run the entire Dreamloop pipeline."""
+    try:
+        print("[1] Parsing memory and generating JSON payloads...")
+        parse_script_and_generate_jsons.run()
 
-    print("[\u2713] Creating image prompts...")
-    generate_image_prompts(scenes)
+        print("[2] Generating voiceover clip...")
+        gen_voice_clip.run()
 
-    print("[\u2713] Generating motion from images...")
-    run_motion()
+        print("[3] Generating scene videos via ComfyUI...")
+        generate_scenes.run()
 
-    print("[\u2713] Assembling video...")
-    assemble_video()
+        print("[4] Assembling final video with ffmpeg...")
+        assemble_video.run()
 
-    print("[\u2714] Dreamloop short complete. Check /output for final video.")
+        print("[5] Pushing results to GitHub...")
+        push_to_github.run()
 
-if __name__ == '__main__':
-    main()
+        print("[✓] Dreamloop pipeline complete. Output saved to final_video.mp4")
+    except Exception as exc:
+        print(f"[error] Pipeline failed: {exc}")
+        raise
+
+
+if __name__ == "__main__":
+    run_full()
