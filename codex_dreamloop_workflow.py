@@ -15,7 +15,7 @@ MEMORY_FILE = "dreamloop_memory.md"
 # === OUTPUT FILES ===
 VOICE_PAYLOAD_FILE = "voice_payload.json"
 SCENE_PROMPTS_FILE = "scene_prompts.json"
-VIDEO_WORKFLOW_FILE = "video_workflow.json"
+VIDEO_WORKFLOW_FILE = "video_workflow.yaml"
 
 # === PARSE MEMORY ===
 def parse_memory_file(path):
@@ -64,11 +64,43 @@ def generate_video_workflow(title, scenes):
         }
     }
 
-# === GITHUB PUSH ===
+
+def write_yaml(data, path: str) -> None:
+    """Write a minimal YAML representation to the given path."""
+    def _to_yaml(obj, indent: int = 0) -> list[str]:
+        space = " " * indent
+        if isinstance(obj, dict):
+            lines = []
+            for k, v in obj.items():
+                if isinstance(v, (dict, list)):
+                    lines.append(f"{space}{k}:")
+                    lines.extend(_to_yaml(v, indent + 2))
+                else:
+                    val = json.dumps(v) if isinstance(v, str) else v
+                    lines.append(f"{space}{k}: {val}")
+            return lines
+        elif isinstance(obj, list):
+            lines = []
+            for item in obj:
+                if isinstance(item, (dict, list)):
+                    lines.append(f"{space}-")
+                    lines.extend(_to_yaml(item, indent + 2))
+                else:
+                    val = json.dumps(item) if isinstance(item, str) else item
+                    lines.append(f"{space}- {val}")
+            return lines
+        else:
+            return [f"{space}{obj}"]
+
+    with open(path, "w") as fh:
+        fh.write("\n".join(_to_yaml(data)))
+
+
 def push_to_github(commit_msg="Auto-update Dreamloop workflow"):
     subprocess.run(["git", "add", VOICE_PAYLOAD_FILE, SCENE_PROMPTS_FILE, VIDEO_WORKFLOW_FILE], check=True)
     subprocess.run(["git", "commit", "-m", commit_msg], check=True)
     subprocess.run(["git", "push"], check=True)
+
 
 # === MAIN EXECUTION ===
 def run():
@@ -87,8 +119,7 @@ def run():
         json.dump(generate_scene_prompts(scenes), f, indent=2)
 
     # Write workflow file
-    with open(VIDEO_WORKFLOW_FILE, 'w') as f:
-        json.dump(generate_video_workflow(title, scenes), f, indent=2)
+    write_yaml(generate_video_workflow(title, scenes), VIDEO_WORKFLOW_FILE)
 
     print(f"[+] Workflow created for: {title}")
 
