@@ -21,6 +21,13 @@ This CLI tool helps you generate AI-driven cinematic shorts based on Dreamloop-s
 5. Concatenate all scenes into a final short
 6. Run `scripts/start_dreamloop.sh` to trigger the full Dreamloop pipeline
 
+## Creating a starter memory file
+Generate a placeholder `dreamloop_memory.md` using the `dreamloop-init` command:
+
+```bash
+python dreamloop_init.py
+```
+
 ## Using ComfyUI for Motion
 If you want to generate motion via AnimateDiff, install **ComfyUI** and the **AnimateDiff** extension first. Missing these will cause errors like `node types were not found` when loading the workflow.
 
