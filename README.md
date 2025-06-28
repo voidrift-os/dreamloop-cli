@@ -15,10 +15,18 @@ This CLI tool helps you generate AI-driven cinematic shorts based on Dreamloop-s
 
 ## Basic Workflow
 1. Write your 5-scene script in `scenes/`
-2. Use `scripts/gen_voice.py` to generate voiceovers (ElevenLabs API)
+2. Run `scripts/voice_server.py` to start a local API for voice generation (ElevenLabs)
 3. Use image generation tools to create scene PNGs
 4. Use `ffmpeg` to combine image + audio per scene
 5. Concatenate all scenes into a final short
+6. Run `scripts/start_dreamloop.sh` to trigger the full Dreamloop pipeline
+
+## Creating a starter memory file
+Generate a placeholder `dreamloop_memory.md` using the `dreamloop-init` command:
+
+```bash
+python dreamloop_init.py
+```
 
 ## Using ComfyUI for Motion
 If you want to generate motion via AnimateDiff, install **ComfyUI** and the **AnimateDiff** extension first. Missing these will cause errors like `node types were not found` when loading the workflow.
