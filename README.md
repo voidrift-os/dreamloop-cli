@@ -40,3 +40,18 @@ If you want to generate motion via AnimateDiff, install **ComfyUI** and the **An
 3. Restart ComfyUI so it loads the new nodes.
 4. Reload your workflow. The nodes (`Load Checkpoint`, `AnimateDiffLoader`, etc.) should be recognized, and the zod validation errors will disappear.
 
+## Running the YouTube automation workflow
+The repository includes an n8n workflow file that automates video uploads to YouTube.
+To execute it locally you need an n8n installation with access to your environment
+variables for API keys and credentials.
+
+Use the helper script to run the workflow once from the command line:
+
+```bash
+scripts/run_youtube_workflow.sh
+```
+
+The script relies on `n8n` being available in your `PATH`. It imports the workflow
+from `youtube_automation_workflow.json` and executes it immediately. Configure your
+API keys in the environment before running.
+
