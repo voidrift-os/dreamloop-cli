@@ -1,0 +1,412 @@
+{
+    "name": "My workflow 4",
+    "nodes": [
+        {
+            "parameters": {
+                "path": "1194ca18-4c52-4648-a99b-ce8c83574b65",
+                "formTitle": "Dreamloop Video Generator",
+                "formDescription": "Instantly generate a cinematic AI video for YouTube. Fill out all fields below.",
+                "formFields": {
+                    "values": [
+                        {
+                            "fieldLabel": "prompt",
+                            "placeholder": "describe your video prompt..."
+                        },
+                        {
+                            "fieldLabel": "style",
+                            "fieldType": "=text",
+                            "fieldOptions": {
+                                "values": [
+                                    {}
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Start_Form",
+            "type": "n8n-nodes-base.formTrigger",
+            "typeVersion": 1,
+            "position": [
+                -60,
+                -80
+            ],
+            "id": "9ee5ee44-10c0-4a2e-b9f2-aa3fe7930c76",
+            "webhookId": "1194ca18-4c52-4648-a99b-ce8c83574b65"
+        },
+        {
+            "parameters": {
+                "authentication": "oAuth2",
+                "sheetId": "1UUPrw7ZIfLRKXwy9DL7K3SnYxkBVTdpUhCgLj9tyr1A",
+                "range": "StylePrompts!A:D",
+                "dataStartRow": "={{ 1 }}",
+                "options": {}
+            },
+            "name": "Get_StylePrompt",
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 1,
+            "position": [
+                140,
+                -80
+            ],
+            "id": "d3ee3560-825e-46d1-832b-8d08e3c3765d",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "VH35dWLOj5KZdSOq",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "functionCode": "// Merge user input with style prompt from sheet\nconst userInput = items[0].json;\nconst rows = items[1].json.data;\nconst styleCol = 0, promptCol = 1, aspectCol = 2, catCol = 3;\nlet matchedRow = rows.find(row => row[styleCol] === userInput[\"Video Style\"]);\nif (!matchedRow) throw new Error(\"Style not found\");\nreturn [{ json: { ...userInput, stylePrompt: matchedRow[promptCol], defaultAspect: matchedRow[aspectCol], defaultCategory: matchedRow[catCol] }}];"
+            },
+            "name": "Merge_StylePrompt",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                340,
+                -80
+            ],
+            "id": "cf125db4-0d6a-49f1-a6bb-34757c68856f"
+        },
+        {
+            "parameters": {
+                "url": "https://openrouter.ai/api/v1/chat/completions",
+                "jsonParameters": true,
+                "options": {
+                    "headers": {
+                        "Authorization": "={{ 'Bearer ' + $env.OPENROUTER_API_KEY }}"
+                    }
+                }
+            },
+            "name": "AI_Refine_Prompt",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                540,
+                -80
+            ],
+            "id": "2aac7055-58f9-4367-9049-77cd85979076"
+        },
+        {
+            "parameters": {
+                "url": "https://api.runwayml.com/v2/generate/video",
+                "responseFormat": "file",
+                "jsonParameters": true,
+                "options": {
+                    "headers": {
+                        "Authorization": "={{ 'Bearer ' + $env.RUNWAYML_API_KEY }}"
+                    }
+                }
+            },
+            "name": "Create_Video",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                740,
+                -80
+            ],
+            "id": "e4edc6a3-6e70-4f2f-95d1-a52411748118"
+        },
+        {
+            "parameters": {
+                "url": "https://api.openai.com/v1/chat/completions",
+                "jsonParameters": true,
+                "options": {
+                    "headers": {
+                        "Authorization": "={{ 'Bearer ' + $env.OPENAI_API_KEY }}"
+                    }
+                }
+            },
+            "name": "Gen_YT_SEO",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                940,
+                -80
+            ],
+            "id": "aa0c7f2b-6b33-44b2-b6e6-ec6cb99a1916"
+        },
+        {
+            "parameters": {
+                "authentication": "oAuth2",
+                "url": "=https://www.googleapis.com/upload/youtube/v3/videos?uploadType=multipart&part=snippet,status",
+                "jsonParameters": true,
+                "options": {}
+            },
+            "name": "YouTube_Upload_HTTP",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                1140,
+                -80
+            ],
+            "id": "e7ed8803-220d-4ba9-bed2-4f28ab9f8cd0",
+            "credentials": {
+                "oAuth2Api": {
+                    "id": null,
+                    "name": "DreamloopYouTube"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "functionCode": "// Prepare log data for Google Sheets\nconst now = new Date().toISOString();\nreturn [{json: { values: [ now, $items(\"Start_Form\", 0)[0].json[\"Prompt\"], $items(\"Start_Form\", 0)[0].json[\"Video Style\"], $items(\"Merge_StylePrompt\", 0)[0].json[\"stylePrompt\"], $items(\"YouTube_Upload_HTTP\", 0)[0].json[\"id\"], $items(\"Gen_YT_SEO\", 0)[0].json[\"choices\"][0][\"message\"][\"content\"][\"title\"], $items(\"YouTube_Upload_HTTP\", 0)[0].json[\"snippet\"][\"title\"], 'Success' ]}}];"
+            },
+            "name": "Format_Log_Row",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                1340,
+                80
+            ],
+            "id": "50ca5d96-3989-4689-80ef-ece03907b62a"
+        },
+        {
+            "parameters": {
+                "authentication": "oAuth2",
+                "sheetId": "1UUPrw7ZIfLRKXwy9DL7K3SnYxkBVTdpUhCgLj9tyr1A",
+                "range": "Log!A:H",
+                "options": {}
+            },
+            "name": "Log_to_Sheets",
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 1,
+            "position": [
+                1440,
+                80
+            ],
+            "id": "5462b0c8-a441-47b1-89fd-33a9ab15bbe9",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "VH35dWLOj5KZdSOq",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+                "method": "POST",
+                "jsonParameters": true,
+                "options": {},
+                "body": {
+                    "text": "Video uploaded successfully: {{$node['YouTube_Upload_HTTP'].json['snippet']['title']}}"
+                }
+            },
+            "name": "Notify_Success",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                1540,
+                80
+            ],
+            "id": "44c2279a-5380-4a1d-a466-32d8a3d79042"
+        },
+        {
+            "parameters": {},
+            "name": "Error_Trigger",
+            "type": "n8n-nodes-base.errorTrigger",
+            "typeVersion": 1,
+            "position": [
+                540,
+                200
+            ],
+            "id": "3f1e822a-76da-4f0a-bef1-6fa7b33d02e7"
+        },
+        {
+            "parameters": {
+                "functionCode": "const now = new Date().toISOString();\nreturn [{json:{ values: [ now, $node[\"Error_Trigger\"].json.message || 'Unknown', $node[\"Error_Trigger\"].json.stack || '', '', '', '', '', 'Error' ]}}];"
+            },
+            "name": "Format_Error_Log",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [
+                740,
+                200
+            ],
+            "id": "c6f31fc0-e6e5-4471-a74c-6df7b5eedda7"
+        },
+        {
+            "parameters": {
+                "authentication": "oAuth2",
+                "sheetId": "1UUPrw7ZIfLRKXwy9DL7K3SnYxkBVTdpUhCgLj9tyr1A",
+                "range": "Log!A:H",
+                "options": {}
+            },
+            "name": "Log_Error_to_Sheets",
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 1,
+            "position": [
+                940,
+                200
+            ],
+            "id": "d3222d12-f574-45d1-8c80-bc6bba54e3a5",
+            "credentials": {
+                "googleSheetsOAuth2Api": {
+                    "id": "VH35dWLOj5KZdSOq",
+                    "name": "Google Sheets account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+                "method": "POST",
+                "jsonParameters": true,
+                "options": {},
+                "body": {
+                    "text": "Workflow failed: {{$node['Error_Trigger'].json.message}}"
+                }
+            },
+            "name": "Notify_Failure",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                1140,
+                200
+            ],
+            "id": "9df5744a-8c2a-4e67-9b8d-9babc105b956"
+        }
+    ],
+    "connections": {
+        "Start_Form": {
+            "main": [
+                [
+                    {
+                        "node": "Get_StylePrompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get_StylePrompt": {
+            "main": [
+                [
+                    {
+                        "node": "Merge_StylePrompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge_StylePrompt": {
+            "main": [
+                [
+                    {
+                        "node": "AI_Refine_Prompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI_Refine_Prompt": {
+            "main": [
+                [
+                    {
+                        "node": "Create_Video",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create_Video": {
+            "main": [
+                [
+                    {
+                        "node": "Gen_YT_SEO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gen_YT_SEO": {
+            "main": [
+                [
+                    {
+                        "node": "YouTube_Upload_HTTP",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "YouTube_Upload_HTTP": {
+            "main": [
+                [
+                    {
+                        "node": "Format_Log_Row",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format_Log_Row": {
+            "main": [
+                [
+                    {
+                        "node": "Log_to_Sheets",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Log_to_Sheets": {
+            "main": [
+                [
+                    {
+                        "node": "Notify_Success",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Error_Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Format_Error_Log",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format_Error_Log": {
+            "main": [
+                [
+                    {
+                        "node": "Log_Error_to_Sheets",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Log_Error_to_Sheets": {
+            "main": [
+                [
+                    {
+                        "node": "Notify_Failure",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    }
+}
