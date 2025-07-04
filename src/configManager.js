@@ -5,6 +5,9 @@ class ConfigManager {
   constructor(env = process.env) {
     this.env = env;
     this.config = new Map();
+    // Callbacks registered in this map will be notified on configuration
+    // changes. Use '*' as the key to register a wildcard watcher that
+    // is invoked for every change.
     this.watchers = new Map();
     this.setDefaults();
   }
@@ -45,11 +48,15 @@ class ConfigManager {
   set(key, value) {
     const oldValue = this.config.get(key);
     this.config.set(key, value);
-    const watchers = this.watchers.get(key) || [];
-    const wildcardWatchers = this.watchers.get('*') || [];
+    // Notify watchers registered for this key and any global watchers
+    // registered under '*' which acts as a wildcard for all keys.
+    const watchers = [
+      ...(this.watchers.get(key) || []),
+      ...(this.watchers.get('*') || [])
+    ];
     const maskedOld = sensitiveKeyRegex.test(key) && typeof oldValue === 'string' ? `${oldValue.slice(0,3)}...` : oldValue;
     const maskedNew = sensitiveKeyRegex.test(key) && typeof value === 'string' ? `${value.slice(0,3)}...` : value;
-    for (const watcher of [...watchers, ...wildcardWatchers]) {
+    for (const watcher of watchers) {
       try {
         watcher(key, maskedNew, maskedOld);
       } catch (err) {
@@ -59,6 +66,7 @@ class ConfigManager {
   }
 
   watch(key, callback) {
+    // Use '*' as the key to subscribe to changes for all configuration keys
     if (!this.watchers.has(key)) this.watchers.set(key, []);
     this.watchers.get(key).push(callback);
   }
