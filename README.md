@@ -55,3 +55,21 @@ The script relies on `n8n` being available in your `PATH`. It imports the workfl
 from `youtube_automation_workflow.json` and executes it immediately. Configure your
 API keys in the environment before running.
 
+
+## Node.js API Server
+
+The project includes an optional Express API located in `src/`. To run it you need Node.js installed.
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Create a `.env` file with the required `API_KEY` and any API credentials used by the workflow (e.g. `OPENAI_API_KEY`).
+3. Start the server:
+   ```bash
+   npm start
+   ```
+
+The API key is mandatory and the server will refuse to start if `API_KEY` is not provided or uses the insecure default value.
+
+The `EnhancedVideoProcessingSystem` currently stores video statuses in memory only. For production use, connect a persistent store such as Redis or a database and update `videoStatusStore` accordingly.
