@@ -25,6 +25,10 @@ class EventBus {
       }
     }
   }
+
+  generateId() {
+    return uuidv4();
+  }
 }
 
 class EnhancedEventBus extends EventBus {
@@ -46,9 +50,10 @@ class EnhancedEventBus extends EventBus {
   executeHandler(handler, message) {
     const { retryCount } = message;
     try {
-      Promise.resolve(handler({ ...message.data })).catch(err => {
-        this.handleFailure(handler, message, err);
-      });
+      Promise.resolve(handler({ type: message.type, data: message.data, retryCount }))
+        .catch(err => {
+          this.handleFailure(handler, message, err);
+        });
     } catch (err) {
       this.handleFailure(handler, message, err);
     }
@@ -79,7 +84,7 @@ class EnhancedEventBus extends EventBus {
       failedAt: Date.now()
     };
     this.deadLetterQueue.push(record);
-    super.emit('message.dead_letter', { message: record });
+    this.emit('message.dead_letter', { message: record });
   }
 
   getDeadLetterMessages() {
