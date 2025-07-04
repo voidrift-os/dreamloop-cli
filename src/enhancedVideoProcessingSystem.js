@@ -53,11 +53,13 @@ class EnhancedVideoProcessingSystem extends VideoProcessingSystem {
   }
 
   setupMonitoring() {
-    this.eventBus.subscribe('message.dead_letter', ({ message }) => {
+    this.eventBus.subscribe('message.dead_letter', ({ data }) => {
+      const { message } = data;
       this.logger.error('Message to dead letter', { id: message.id, type: message.type });
       this.metrics.increment('dead_letter_queue.messages');
     });
-    this.eventBus.subscribe('health.check.completed', ({ status }) => {
+    this.eventBus.subscribe('health.check.completed', ({ data }) => {
+      const { status } = data;
       this.metrics.increment('health_check.completed', { status });
       if (status === 'unhealthy') {
         this.logger.warn('System health check failed');
