@@ -5,6 +5,10 @@ class EventBus {
   constructor() {
     this.listeners = {};
   }
+
+  generateId() {
+    return uuidv4();
+  }
   subscribe(type, handler) {
     if (!this.listeners[type]) this.listeners[type] = new Set();
     this.listeners[type].add(handler);
@@ -72,8 +76,13 @@ class EnhancedEventBus extends EventBus {
   }
 
   pushToDeadLetter(message, error) {
-    const id = uuidv4();
-    const record = { id, ...message, error: error.message, failedAt: Date.now() };
+    const id = this.generateId();
+    const record = {
+      id,
+      ...message,
+      error: error.message,
+      failedAt: Date.now()
+    };
     this.deadLetterQueue.push(record);
     this.emit('message.dead_letter', { message: record });
   }
