@@ -77,7 +77,15 @@ client.on('interactionCreate', async interaction => {
   const prompt = interaction.options.getString('prompt');
 
   if (!prompt) {
-    await interaction.reply('Hello! I am here to help with any questions you may have. How can I assist you today?');
+await interaction.reply({
+      content:
+        'Hello! I am here to help with any questions you may have. How can I assist you today?',
+      ephemeral: true
+    });
+    return;
+  }
+
+  try {
     return;
   }
 
