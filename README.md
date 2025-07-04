@@ -72,4 +72,4 @@ The project includes an optional Express API located in `src/`. To run it you ne
 
 The API key is mandatory and the server will refuse to start if `API_KEY` is not provided or uses the insecure default value.
 
-The `EnhancedVideoProcessingSystem` currently stores video statuses in memory only. For production use, connect a persistent store such as Redis or a database and update `videoStatusStore` accordingly.
+Video statuses are persisted to a JSON file by default via the `FileVideoStatusStore`. You can implement the `VideoStatusStore` interface to swap in your own storage mechanism (e.g. database or Redis) if needed.

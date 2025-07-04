@@ -87,8 +87,8 @@ app.post('/process-video', (req, res) => {
     });
 });
 
-app.get('/video-status/:videoId', (req, res) => {
-  const status = system.getVideoStatus(req.params.videoId);
+app.get('/video-status/:videoId', async (req, res) => {
+  const status = await system.getVideoStatus(req.params.videoId);
   if (!status) return res.status(404).json({ error: 'Video not found' });
   res.json({ videoId: req.params.videoId, status });
 });

@@ -4,11 +4,12 @@ const HealthCheckService = require('./healthCheckService');
 const ConfigManager = require('./configManager');
 const WorkflowBuilder = require('./workflowBuilder');
 const logger = require('./logger');
+const { FileVideoStatusStore } = require('./videoStatusStore');
 
 class VideoProcessingSystem {}
 
 class EnhancedVideoProcessingSystem extends VideoProcessingSystem {
-  constructor() {
+  constructor(videoStatusStore = new FileVideoStatusStore()) {
     super();
     this.eventBus = new EnhancedEventBus();
     this.configManager = new ConfigManager();
@@ -27,7 +28,7 @@ class EnhancedVideoProcessingSystem extends VideoProcessingSystem {
     this.logger = logger;
     this.metrics = { increment: () => {} };
     this.orchestrator = { generateVideoId: () => `video_${Date.now()}` };
-    this.videoStatusStore = new Map(); // TODO: replace with persistent store
+    this.videoStatusStore = videoStatusStore;
 
     this.createCustomWorkflows();
     this.setupMonitoring();
@@ -46,7 +47,7 @@ class EnhancedVideoProcessingSystem extends VideoProcessingSystem {
       .addStep('create_video', async (ctx) => {
         const content = ctx.results.get('generate_content');
         const video = await this.createVideoWithPriority(content.prompt);
-        this.videoStatusStore.set(video.videoId, { status: 'processing', createdAt: Date.now() });
+        await this.videoStatusStore.set(video.videoId, { status: 'processing', createdAt: Date.now() });
         return video;
       }, { timeout: 120000, compensate: async () => logger.info('Cleaning up resources') })
       .build();
@@ -77,7 +78,7 @@ class EnhancedVideoProcessingSystem extends VideoProcessingSystem {
     if (priority === 'high') {
       const result = await this.workflowBuilder.executeWorkflow('high_priority_video', { promptParams, correlationId, userId });
       const videoId = result.create_video?.videoId;
-      if (videoId) this.videoStatusStore.set(videoId, { status: 'completed', updatedAt: Date.now() });
+      if (videoId) await this.videoStatusStore.set(videoId, { status: 'completed', updatedAt: Date.now() });
       return { correlationId, workflowResult: result };
     }
     this.eventBus.emit('workflow.start', { videoId: this.orchestrator.generateVideoId(), promptParams, correlationId, userId });
@@ -106,7 +107,7 @@ class EnhancedVideoProcessingSystem extends VideoProcessingSystem {
     return { requests: this.rateLimiter.requests.get(userId) || [], limit: this.rateLimiter.maxRequests, window: this.rateLimiter.windowMs };
   }
 
-  getVideoStatus(id) { return this.videoStatusStore.get(id) || null; }
+  async getVideoStatus(id) { return await this.videoStatusStore.get(id); }
 }
 
 module.exports = EnhancedVideoProcessingSystem;
