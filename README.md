@@ -73,3 +73,5 @@ The project includes an optional Express API located in `src/`. To run it you ne
 The API key is mandatory and the server will refuse to start if `API_KEY` is not provided or uses the insecure default value.
 
 The `EnhancedVideoProcessingSystem` currently stores video statuses in memory only. For production use, connect a persistent store such as Redis or a database and update `videoStatusStore` accordingly.
+
+The built-in rate limiter also keeps request timestamps in memory for each user. If your API receives traffic from many unique users this map can grow large. Adjust `rate.limit.cleanupInterval` via the `/config` endpoint to prune inactive keys more often or consider an external store when scaling.

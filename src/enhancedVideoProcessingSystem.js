@@ -14,7 +14,8 @@ class EnhancedVideoProcessingSystem extends VideoProcessingSystem {
     this.configManager = new ConfigManager();
     this.rateLimiter = new RateLimiter(
       this.configManager.get('rate.limit.requests'),
-      this.configManager.get('rate.limit.window')
+      this.configManager.get('rate.limit.window'),
+      this.configManager.get('rate.limit.cleanupInterval')
     );
     this.cache = {};
     this.circuitBreaker = { state: 'CLOSED', failureCount: 0 };

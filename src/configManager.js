@@ -16,6 +16,7 @@ class ConfigManager {
     this.config.set('circuit.breaker.threshold', 5);
     this.config.set('rate.limit.requests', 100);
     this.config.set('rate.limit.window', 60000);
+    this.config.set('rate.limit.cleanupInterval', 10000);
     this.config.set('health.check.interval', 30000);
 
     this.loadEnv('openai.apiKey');
