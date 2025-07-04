@@ -1,0 +1,13 @@
+# Node
+node_modules/
+.env
+
+# Python
+__pycache__/
+
+# Media artifacts
+voice/
+video/
+thumbnails/
+*.mp3
+*.mp4
