@@ -1,9 +1,19 @@
+const fs = require('fs');
+const path = require('path');
 const logger = require('./logger');
 const sensitiveKeyRegex = /(apiKey|credentialId|voiceId)/i;
 
 class ConfigManager {
-  constructor(env = process.env) {
+  constructor(env = process.env, configPath = path.join(__dirname, '..', 'config.json')) {
     this.env = env;
+    this.fileConfig = {};
+    if (fs.existsSync(configPath)) {
+      try {
+        this.fileConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      } catch (err) {
+        logger.warn(`Failed to load config file ${configPath}: ${err.message}`);
+      }
+    }
     this.config = new Map();
     this.watchers = new Map();
     this.setDefaults();
@@ -18,21 +28,25 @@ class ConfigManager {
     this.config.set('rate.limit.window', 60000);
     this.config.set('health.check.interval', 30000);
 
-    this.loadEnv('openai.apiKey');
-    this.loadEnv('runwayml.apiKey');
-    this.loadEnv('openrouter.apiKey');
-    this.loadEnv('elevenlabs.apiKey');
-    this.loadEnv('elevenlabs.voiceId');
-    this.loadEnv('googleSheets.credentialId');
-    this.loadEnv('googleSheets.accountName');
-    this.loadEnv('youtube.credentialId');
-    this.loadEnv('youtube.accountName');
+    this.loadValue('openai.apiKey');
+    this.loadValue('runwayml.apiKey');
+    this.loadValue('openrouter.apiKey');
+    this.loadValue('elevenlabs.apiKey');
+    this.loadValue('elevenlabs.voiceId');
+    this.loadValue('googleSheets.credentialId');
+    this.loadValue('googleSheets.accountName');
+    this.loadValue('youtube.credentialId');
+    this.loadValue('youtube.accountName');
   }
 
-  loadEnv(key) {
+  loadValue(key) {
     const envKey = key.toUpperCase().replace(/\./g, '_');
-    const value = this.env[envKey] || null;
+    let value = this.env[envKey];
+    if (value === undefined) {
+      value = this.fileConfig[key];
+    }
     if (!value) {
+      value = null;
       logger.warn(`Missing value for ${key}`);
     }
     this.config.set(key, value);
