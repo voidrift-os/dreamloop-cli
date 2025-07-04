@@ -71,8 +71,13 @@ class EnhancedEventBus extends EventBus {
   }
 
   pushToDeadLetter(message, error) {
-    const id = uuidv4();
-    const record = { id, ...message, error: error.message, failedAt: Date.now() };
+    const id = this.generateId();
+    const record = {
+      id,
+      ...message,
+      error: error.message,
+      failedAt: Date.now()
+    };
     this.deadLetterQueue.push(record);
     super.emit('message.dead_letter', { message: record });
   }
