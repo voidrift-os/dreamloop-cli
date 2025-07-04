@@ -73,3 +73,13 @@ The project includes an optional Express API located in `src/`. To run it you ne
 The API key is mandatory and the server will refuse to start if `API_KEY` is not provided or uses the insecure default value.
 
 The `EnhancedVideoProcessingSystem` currently stores video statuses in memory only. For production use, connect a persistent store such as Redis or a database and update `videoStatusStore` accordingly.
+
+## Running Tests
+
+Unit tests use [Jest](https://jestjs.io/). After installing dependencies you can execute:
+
+```bash
+npm test
+```
+
+This runs the test suite located in `__tests__/` covering the enhanced event bus, rate limiter and API endpoint logic.

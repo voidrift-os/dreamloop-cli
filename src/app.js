@@ -98,6 +98,11 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 9001;
-app.listen(PORT, () => {
-  logger.info(`Server running at http://localhost:${PORT}`);
-});
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    logger.info(`Server running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
