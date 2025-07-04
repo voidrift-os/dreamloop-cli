@@ -5,6 +5,10 @@ class EventBus {
   constructor() {
     this.listeners = {};
   }
+
+  generateId() {
+    return uuidv4();
+  }
   subscribe(type, handler) {
     if (!this.listeners[type]) this.listeners[type] = new Set();
     this.listeners[type].add(handler);

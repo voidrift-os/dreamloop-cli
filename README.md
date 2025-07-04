@@ -73,3 +73,27 @@ The project includes an optional Express API located in `src/`. To run it you ne
 The API key is mandatory and the server will refuse to start if `API_KEY` is not provided or uses the insecure default value.
 
 The `EnhancedVideoProcessingSystem` currently stores video statuses in memory only. For production use, connect a persistent store such as Redis or a database and update `videoStatusStore` accordingly.
+
+## Running Tests
+
+Unit tests use [Jest](https://jestjs.io/). After installing dependencies you can execute:
+
+```bash
+npm test
+```
+
+This runs the test suite located in `__tests__/` covering the enhanced event bus, rate limiter and API endpoint logic.
+
+## Required Environment Variables
+
+Sensitive credentials can be loaded from environment variables or a `config.json` file placed in the project root. These are used by the `EnhancedVideoProcessingSystem` and YouTube workflow. Define the following variables:
+
+- `OPENAI_API_KEY`
+- `RUNWAYML_API_KEY`
+- `OPENROUTER_API_KEY`
+- `ELEVENLABS_API_KEY`
+- `ELEVENLABS_VOICE_ID`
+- `GOOGLE_SHEETS_CREDENTIAL_ID`
+- `GOOGLE_SHEETS_ACCOUNT_NAME`
+- `YOUTUBE_CREDENTIAL_ID`
+- `YOUTUBE_ACCOUNT_NAME`
