@@ -25,10 +25,6 @@ class EventBus {
       }
     }
   }
-
-  generateId() {
-    return uuidv4();
-  }
 }
 
 class EnhancedEventBus extends EventBus {
