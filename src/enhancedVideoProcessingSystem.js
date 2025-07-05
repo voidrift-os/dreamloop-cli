@@ -4,6 +4,7 @@ const HealthCheckService = require('./healthCheckService');
 const ConfigManager = require('./configManager');
 const WorkflowBuilder = require('./workflowBuilder');
 const logger = require('./logger');
+const cache = require('./cache');
 
 class VideoProcessingSystem {}
 
@@ -16,7 +17,7 @@ class EnhancedVideoProcessingSystem extends VideoProcessingSystem {
       this.configManager.get('rate.limit.requests'),
       this.configManager.get('rate.limit.window')
     );
-    this.cache = {};
+    this.cache = cache;
     this.circuitBreaker = { state: 'CLOSED', failureCount: 0 };
     this.healthCheck = new HealthCheckService({
       eventBus: this.eventBus,
